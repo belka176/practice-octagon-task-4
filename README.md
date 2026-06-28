@@ -24,3 +24,14 @@ python3 app/task4.py
 1. python3 app/init_db.py
 2. python3 app/task5.py
 ```
+
+# Как запустить
+-задание 6
+```
+1. запустить сервер в терминале Ubuntu: uvicorn app.task6:app --reload --host 0.0.0.0 --port 8000
+2. перейти по этим ссылкам:
+http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/redoc
+http://127.0.0.1:8000/health
+
+```

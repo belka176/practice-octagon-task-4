@@ -1,12 +1,13 @@
 # app/db/crud.py
 from sqlalchemy.orm import Session
 from app.db import models
+from app.schemas import CategoryCreate, CategoryUpdate, BookCreate, BookUpdate
 
 
 # ---------- CRUD для Category ----------
-def create_category(db: Session, title: str):
+def create_category(db: Session, category: CategoryCreate):
     """Создание новой категории"""
-    db_category = models.Category(title=title)
+    db_category = models.Category(title=category.title)
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
@@ -28,19 +29,20 @@ def get_categories(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Category).offset(skip).limit(limit).all()
 
 
-def update_category(db: Session, category_id: int, title: str):
+def update_category(db: Session, category_id: int, category: CategoryUpdate):
     """Обновление категории"""
-    category = get_category(db, category_id)
-    if category:
-        # Проверяем, не существует ли уже категория с таким названием
-        existing = get_category_by_title(db, title)
-        if existing and existing.id != category_id:
-            return None  # или можно raise исключение
-        
-        category.title = title
-        db.commit()
-        db.refresh(category)
-        return category
+    db_category = get_category(db, category_id)
+    if db_category:
+        if category.title is not None:
+            # Проверяем, не существует ли уже категория с таким названием
+            existing = get_category_by_title(db, category.title)
+            if existing and existing.id != category_id:
+                return None
+            
+            db_category.title = category.title
+            db.commit()
+            db.refresh(db_category)
+        return db_category
     return None
 
 
@@ -59,19 +61,19 @@ def delete_category(db: Session, category_id: int):
 
 
 # ---------- CRUD для Book ----------
-def create_book(db: Session, title: str, description: str, price: float, category_id: int, url: str = None):
+def create_book(db: Session, book: BookCreate):
     """Создание новой книги с проверкой существования категории"""
     # Проверяем, существует ли категория
-    category = get_category(db, category_id)
+    category = get_category(db, book.category_id)
     if not category:
-        raise ValueError(f"Категория с ID {category_id} не существует")
+        raise ValueError(f"Категория с ID {book.category_id} не существует")
     
     db_book = models.Book(
-        title=title,
-        description=description,
-        price=price,
-        url=url,
-        category_id=category_id
+        title=book.title,
+        description=book.description,
+        price=book.price,
+        url=book.url,
+        category_id=book.category_id
     )
     db.add(db_book)
     db.commit()
@@ -89,33 +91,32 @@ def get_books(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Book).offset(skip).limit(limit).all()
 
 
-def get_books_by_category(db: Session, category_id: int):
+def get_books_by_category(db: Session, category_id: int, skip: int = 0, limit: int = 100):
     """Получение книг по категории"""
-    return db.query(models.Book).filter(models.Book.category_id == category_id).all()
+    return db.query(models.Book).filter(models.Book.category_id == category_id).offset(skip).limit(limit).all()
 
 
-def update_book(db: Session, book_id: int, title: str = None, description: str = None, 
-                price: float = None, url: str = None, category_id: int = None):
+def update_book(db: Session, book_id: int, book: BookUpdate):
     """Обновление книги"""
-    book = get_book(db, book_id)
-    if book:
-        if title is not None:
-            book.title = title
-        if description is not None:
-            book.description = description
-        if price is not None:
-            book.price = price
-        if url is not None:
-            book.url = url
-        if category_id is not None:
+    db_book = get_book(db, book_id)
+    if db_book:
+        if book.title is not None:
+            db_book.title = book.title
+        if book.description is not None:
+            db_book.description = book.description
+        if book.price is not None:
+            db_book.price = book.price
+        if book.url is not None:
+            db_book.url = book.url
+        if book.category_id is not None:
             # Проверяем, существует ли новая категория
-            category = get_category(db, category_id)
+            category = get_category(db, book.category_id)
             if not category:
-                raise ValueError(f"Категория с ID {category_id} не существует")
-            book.category_id = category_id
+                raise ValueError(f"Категория с ID {book.category_id} не существует")
+            db_book.category_id = book.category_id
         db.commit()
-        db.refresh(book)
-        return book
+        db.refresh(db_book)
+        return db_book
     return None
 
 

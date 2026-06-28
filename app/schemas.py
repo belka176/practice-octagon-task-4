@@ -1,5 +1,5 @@
 # app/schemas.py
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from typing import Optional
 
 # ----- Схемы для Category -----
@@ -14,8 +14,9 @@ class CategoryUpdate(BaseModel):
 
 class CategoryResponse(CategoryBase):
     id: int
-    
-    model_config = ConfigDict(from_attributes=True)
+
+    class Config:
+        orm_mode = True
 
 
 # ----- Схемы для Book -----
@@ -39,5 +40,6 @@ class BookUpdate(BaseModel):
 class BookResponse(BookBase):
     id: int
     category: Optional[CategoryResponse] = None
-    
-    model_config = ConfigDict(from_attributes=True)
+
+    class Config:
+        orm_mode = True

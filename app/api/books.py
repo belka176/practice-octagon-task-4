@@ -41,6 +41,7 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     category = crud.get_category(db, book.category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
+    # Исправлено: передаем Pydantic объект целиком
     return crud.create_book(db, book)
 
 
@@ -52,7 +53,7 @@ def update_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
         category = crud.get_category(db, book.category_id)
         if not category:
             raise HTTPException(status_code=404, detail="Category not found")
-    
+    # Исправлено: передаем Pydantic объект целиком
     db_book = crud.update_book(db, book_id, book)
     if not db_book:
         raise HTTPException(status_code=404, detail="Book not found")
